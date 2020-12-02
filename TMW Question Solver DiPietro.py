@@ -1,122 +1,96 @@
 import csv
 
 # Justin DiPietro
-# Created 2020-11-30
-# Updated 2020-12-01
+# Created 2020-12-02
 
 # Columns:
 # review number, brand, variety, style, country, stars, topTen
 
-# A note on the organization:
-# I prioritized readability over efficiency, so there are more lines of code than there needs to be
-# and this runs a bit slower than it could.
-# For a simple set of problems like this, readability is the important part. Even with this less efficient design,
-# the code runs in about one second on my machine.
-
-
 def main():
-    print('Start')
+    print('starting')
     ramenList = importData()
-    question1(ramenList)
-    question2(ramenList)
-    question3(ramenList)
-    question4(ramenList)
-    question5(ramenList)
-    question6(ramenList)
 
-def question1(ramenList):
-    print('1. What ingredients or flavors are most commonly advertised on ramen package labels?')
-    uniqueWords = {} # Dictionary to hold words and their frequency
-    for ramen in ramenList: # iterate thru list of datapoints from csv file
+    question1Results = {} # Dictionary to hold words and their frequency
+    question2Results = {} # Dictionary to hold countries and their frequency
+    question3Results = {} # Dictionary to hold brands and their frequency
+    question4Results = {} # Dictionary to hold stars and their frequency
+    question5Results = {} # Dictionary to hold words and their frequency
+    question6Results = {} # Dictionary to hold brands and their scores
+
+    for ramen in ramenList:
         words = ramen.variety.split(' ') # break the variety column into words
         for word in words: # iterate thru those words
-            if word in uniqueWords: #if the word is already saved, just increment its frequency
-                uniqueWords[word] += 1
+            if word in question1Results: #if the word is already saved, just increment its frequency
+                question1Results[word] += 1
             else:
                 #add the uncatalogued word to the list of words and set its count to 1
-                uniqueWords[word] = 1
-
-    print(getLargestInDict(uniqueWords, 30))
-
-
-def question2(ramenList):
-    print('2. How is ramen manufacturing internationally distributed?')
-    uniqueCountries = {} # Dictionary to hold countries and their frequency
-    ramenCount = len(ramenList) # total number of datapoints, used for getting %
-    for ramen in ramenList: # iterate thru list of datapoints from csv file
-        if ramen.country in uniqueCountries: # if the country is already saved, just increment its frequency
-            uniqueCountries[ramen.country] += 1
+                question1Results[word] = 1
+        if ramen.country in question2Results:
+            question2Results[ramen.country] += 1
         else:
             #add the uncatalogued country to the list of country and set its count to 1
-            uniqueCountries[ramen.country] = 1
-    for country in uniqueCountries: # iterate thru the saved countries
-        # compare frequency to total to get percentage
-        uniqueCountries[country] = round(((uniqueCountries[country]/ramenCount)*100), 2) 
-    sort = sorted(uniqueCountries.items(), key=lambda x: x[1], reverse=True) # sort it in decreasing order
-    for country in sort: #then print in order
-        print(country[0] + ": " + str(country[1]) + "%")
-    
-
-def question3(ramenList):
-    print('3. What are the top 10 most popular ramen brands?')
-    uniqueBrands = {} # Dictionary to hold brands and their frequency
-    for ramen in ramenList: # iterate thru list of datapoints from csv file
-        if ramen.brand in uniqueBrands: # if the brand is already saved, just increment its frequency
-            uniqueBrands[ramen.brand] += 1
+            question2Results[ramen.country] = 1
+        if ramen.brand in question3Results: # if the brand is already saved, just increment its frequency
+            question3Results[ramen.brand] += 1
         else:
             #add the uncatalogued country to the list of country and set its count to 1
-            uniqueBrands[ramen.brand] = 1
-    sort = sorted(uniqueBrands.items(), key=lambda x: x[1], reverse=True) # sort it in decreasing order
-    print(sort[:10]) # Print the top 10
-    
-def question4(ramenList):
-    print('4. What are the top 10 ramen ratings?')
-    uniqueStars = {} # Dictionary to hold stars and their frequency
-    for ramen in ramenList:
-        if str(ramen.stars) in uniqueStars:
-            uniqueStars[str(ramen.stars)] += 1 # if the stars is already saved, just increment its frequency
+            question3Results[ramen.brand] = 1
+        if str(ramen.stars) in question4Results:
+            question4Results[str(ramen.stars)] += 1 # if the stars is already saved, just increment its frequency
         else:
             #add the uncatalogued stars to the list of stars and set its count to 1
-            uniqueStars[str(ramen.stars)] = 1
-    sort = sorted(uniqueStars.items(), key=lambda x: x[1], reverse=True)
-    print(sort[:10])
-
-def question5(ramenList):
-    print('5. If you convert the variety column into a set of words, what are the top 20 most popular words in the column?')
-    uniqueWords = {} # Dictionary to hold words and their frequency
-    for ramen in ramenList:
-        words = ramen.variety.split(' ') # Split variety column into list of words
-        for word in words:
-            if word in uniqueWords: #if the word is already saved, just increment its frequency
-                uniqueWords[word] += 1
-            else:
-                #add the uncatalogued word to the list of words and set its count to 1
-                uniqueWords[word] = 1
-
-    print(getLargestInDict(uniqueWords, 20))
-
-def question6(ramenList):
-    print('6. What are the top 10 brands with the best average score?')
-    uniqueBrands = {} # Dictionary to hold brands and their frequency
-    for ramen in ramenList:
+            question4Results[str(ramen.stars)] = 1
         if ramen.stars == "Unrated": # there are 3 datapoints without ratings. Pass over these
             pass
         else:
-            if ramen.brand in uniqueBrands: # if the brand is already saved, just adjust its average
-                uniqueBrands[ramen.brand] = (float(uniqueBrands[ramen.brand]) + float(ramen.stars)) / 2
-            else: # add the brand to the dictionary and set its average score
-                uniqueBrands[ramen.brand] = float(ramen.stars)
-    sort = sorted(uniqueBrands.items(), key=lambda x: x[1], reverse=True)
-    print(sort)
+            if ramen.brand in question6Results: # if the brand is already saved, add new rating
+                question6Results[ramen.brand].append(float(ramen.stars))
+            else: # add the brand to the dictionary and create list of ratings (to be averaged later)
+                question6Results[ramen.brand] = [float(ramen.stars)]
 
+    print('1. What ingredients or flavors are most commonly advertised on ramen package labels?')
+    print(getLargestInDict(question1Results, 30))
+    print('2. How is ramen manufacturing internationally distributed?')
+    print(processQ2(question2Results, len(ramenList)))
+    print('3. What are the top 10 most popular ramen brands?')
+    print(getLargestInDict(question3Results, 10))
+    print('4. What are the top 10 ramen ratings?')
+    print(getLargestInDict(question4Results, 10))
+    print('5. If you convert the variety column into a set of words, what are the top 20 most popular words in the column?')
+    print(getLargestInDict(question1Results, 20))
+    print('6. What are the top 10 brands with the best average score?')
+    print(processQ6(question6Results))
+    
+
+def processQ2(question2Results, totalCount):
+    for country in question2Results: # iterate thru the saved countries
+        # compare frequency to total to get percentage
+        question2Results[country] = round(((question2Results[country]/totalCount)*100), 2) 
+    sort = sorted(question2Results.items(), key=lambda x: x[1], reverse=True) # sort it in decreasing order
+    for country in sort: #then print in order
+        print(country[0] + ": " + str(country[1]) + "%")
+    return('')
+    
+
+def processQ6(question6Results):
+    for brand in question6Results: # iterate thru the saved countries
+        # compare frequency to total to get percentage
+        ratingCount = len(question6Results[brand])
+        question6Results[brand] = sum(question6Results[brand])
+        question6Results[brand] = question6Results[brand]/ratingCount
+    sort = sorted(question6Results.items(), key=lambda x: x[1], reverse=True) # sort it in decreasing order
+    for brand in sort[:10]:
+        print(brand[0] + ": " + str(brand[1]) + " stars")
+    return('')
+    
 
 # Pass in a dictionary and the number of top results requested
-def getLargestInDict(dictionary, count):
+def getLargestInDict(inDictionary, count):
+    dictionary = inDictionary.copy() # is this what you meant by clone?
     largest = []
+    sort = sorted(dictionary.items(), key=lambda x: x[1], reverse=True) # sort it in decreasing order
     for i in range(count):
-        big = max(dictionary, key=dictionary.get) #get the key of the max value in the dict
-        largest.append(big) 
-        dictionary.pop(big) # remove that key value pair
+        largest.append(sort[i]) 
     return largest
     
 
@@ -143,5 +117,4 @@ class Ramen:
         self.topTen = topTen
 
 
-main()
-    
+main() 
